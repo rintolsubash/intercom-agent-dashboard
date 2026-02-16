@@ -1,40 +1,26 @@
 export default async function handler(req, res) {
   try {
-    const response = await fetch("https://api.intercom.io/conversations", {
-      headers: {
-        Authorization: `Bearer ${process.env.INTERCOM_ACCESS_TOKEN}`,
-        Accept: "application/json"
+    const response = await fetch(
+      "https://api.intercom.io/conversations?per_page=20",
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.INTERCOM_ACCESS_TOKEN}`,
+          Accept: "application/json"
+        }
       }
-    });
+    );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      return res.status(response.status).json({
-        error: "Intercom API error",
-        details: errorText
-      });
-    }
-
-    const data = await response.json();
-    const conversations = data.conversations || [];
+    const raw = await response.json();
+    const conversations = raw.conversations || [];
 
     let open = 0;
     let closed = 0;
     let waiting = 0;
 
-    const sample = conversations.slice(0, 5).map(c => {
-      if (c.state === "open") open++;
+    conversations.forEach(c => {
       if (c.state === "closed") closed++;
-      if (c.waiting_since) waiting++;
-
-      return {
-        id: c.id,
-        state: c.state,
-        created_at: c.created_at,
-        updated_at: c.updated_at,
-        waiting_since: c.waiting_since,
-        author_type: c.source?.author?.type || "unknown"
-      };
+      else if (c.waiting_since) waiting++;
+      else open++;
     });
 
     res.status(200).json({
@@ -45,13 +31,20 @@ export default async function handler(req, res) {
         closed,
         waiting
       },
-      sample
+      sample: conversations.map(c => ({
+        id: c.id,
+        state: c.state,
+        created_at: c.created_at,
+        updated_at: c.updated_at,
+        waiting_since: c.waiting_since,
+        author_type: c.source?.author?.type || "unknown"
+      }))
     });
 
   } catch (error) {
     res.status(500).json({
-      error: "Server error",
-      message: error.message
+      error: "Intercom API error",
+      details: error.message
     });
   }
 }
