@@ -7,26 +7,32 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 24px;
       background: #f7f9fb;
+      padding: 24px;
     }
 
     h1 {
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
 
     .cards {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
       margin-bottom: 24px;
     }
 
     .card {
       background: #fff;
+      border-radius: 10px;
       padding: 16px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      min-width: 160px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
     }
 
     .card h3 {
@@ -37,35 +43,41 @@
 
     .card p {
       font-size: 28px;
-      margin: 8px 0 0;
       font-weight: bold;
+      margin-top: 8px;
     }
 
-    section {
+    .details {
       background: #fff;
-      padding: 16px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      margin-bottom: 20px;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+      animation: fadeIn 0.2s ease-in;
+    }
+
+    .hidden {
+      display: none;
     }
 
     ul {
-      margin: 0;
-      padding-left: 20px;
+      padding-left: 18px;
     }
 
     li {
+      margin-bottom: 6px;
       font-family: monospace;
-      font-size: 13px;
-      margin-bottom: 4px;
     }
 
-    pre {
-      background: #fafafa;
-      padding: 12px;
-      border-radius: 6px;
-      border: 1px solid #eee;
-      overflow-x: auto;
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
   </style>
 </head>
@@ -75,51 +87,82 @@
 
   <!-- METRIC CARDS -->
   <div class="cards">
-    <div class="card">
-      <h3>Total Conversations</h3>
-      <p id="totalCount">–</p>
-    </div>
-
-    <div class="card">
+    <div class="card" onclick="toggleSection('openSection')">
       <h3>Open</h3>
       <p id="openCount">–</p>
     </div>
 
-    <div class="card">
+    <div class="card" onclick="toggleSection('waitingSection')">
+      <h3>Waiting</h3>
+      <p id="waitingCount">–</p>
+    </div>
+
+    <div class="card" onclick="toggleSection('closedSection')">
       <h3>Closed</h3>
       <p id="closedCount">–</p>
     </div>
 
     <div class="card">
-      <h3>Waiting</h3>
-      <p id="waitingCount">–</p>
+      <h3>Total Conversations</h3>
+      <p id="totalCount">–</p>
     </div>
   </div>
 
   <!-- OPEN -->
-  <section>
+  <section id="openSection" class="details hidden">
     <h3>Open Conversations</h3>
     <ul id="openList"></ul>
   </section>
 
   <!-- WAITING -->
-  <section>
+  <section id="waitingSection" class="details hidden">
     <h3>Waiting Conversations</h3>
     <ul id="waitingList"></ul>
   </section>
 
   <!-- CLOSED -->
-  <section>
+  <section id="closedSection" class="details hidden">
     <h3>Closed Conversations</h3>
     <ul id="closedList"></ul>
   </section>
 
-  <!-- DEBUG (hidden later if you want) -->
-  <section>
-    <h3>Raw API Output (debug)</h3>
-    <pre id="debugOutput">Loading…</pre>
-  </section>
+  <script>
+    function toggleSection(id) {
+      const sections = document.querySelectorAll(".details");
+      sections.forEach(section => {
+        if (section.id === id) {
+          section.classList.toggle("hidden");
+        } else {
+          section.classList.add("hidden");
+        }
+      });
+    }
 
-  <script src="/metrics.js"></script>
+    async function loadMetrics() {
+      const res = await fetch("/api/metrics");
+      const data = await res.json();
+
+      document.getElementById("totalCount").textContent = data.totals.all;
+      document.getElementById("openCount").textContent = data.totals.open;
+      document.getElementById("waitingCount").textContent = data.totals.waiting;
+      document.getElementById("closedCount").textContent = data.totals.closed;
+
+      fillList("openList", data.open);
+      fillList("waitingList", data.waiting);
+      fillList("closedList", data.closed);
+    }
+
+    function fillList(elementId, items) {
+      const el = document.getElementById(elementId);
+      el.innerHTML = "";
+      items.forEach(id => {
+        const li = document.createElement("li");
+        li.textContent = id;
+        el.appendChild(li);
+      });
+    }
+
+    loadMetrics();
+  </script>
 </body>
 </html>

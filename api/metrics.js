@@ -1,46 +1,36 @@
 export default async function handler(req, res) {
   try {
-    const response = await fetch(
-      "https://api.intercom.io/conversations?per_page=20",
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.INTERCOM_ACCESS_TOKEN}`,
-          Accept: "application/json"
-        }
+    const response = await fetch("https://api.intercom.io/conversations?per_page=50", {
+      headers: {
+        Authorization: `Bearer ${process.env.INTERCOM_ACCESS_TOKEN}`,
+        Accept: "application/json"
       }
-    );
+    });
 
-    const raw = await response.json();
-    const conversations = raw.conversations || [];
+    const data = await response.json();
 
-    let open = 0;
-    let closed = 0;
-    let waiting = 0;
+    const open = [];
+    const waiting = [];
+    const closed = [];
 
-    conversations.forEach(c => {
-      if (c.state === "closed") closed++;
-      else if (c.waiting_since) waiting++;
-      else open++;
+    (data.conversations || []).forEach(conv => {
+      if (conv.state === "open") open.push(conv.id);
+      else if (conv.state === "waiting") waiting.push(conv.id);
+      else if (conv.state === "closed") closed.push(conv.id);
     });
 
     res.status(200).json({
       status: "Intercom API connected ✅",
       totals: {
-        all: conversations.length,
-        open,
-        closed,
-        waiting
+        all: open.length + waiting.length + closed.length,
+        open: open.length,
+        waiting: waiting.length,
+        closed: closed.length
       },
-      sample: conversations.map(c => ({
-        id: c.id,
-        state: c.state,
-        created_at: c.created_at,
-        updated_at: c.updated_at,
-        waiting_since: c.waiting_since,
-        author_type: c.source?.author?.type || "unknown"
-      }))
+      open,
+      waiting,
+      closed
     });
-
   } catch (error) {
     res.status(500).json({
       error: "Intercom API error",
