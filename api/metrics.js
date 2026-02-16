@@ -1,20 +1,15 @@
-(async () => {
+export default async function handler(req, res) {
   try {
-    const data = {
-      message: "Dashboard loaded successfully",
-      environment: "Vercel",
-      timestamp: new Date().toISOString()
-    };
-
-    const output = document.getElementById("output");
-
-    if (!output) {
-      throw new Error("Output element not found in HTML");
-    }
-
-    output.textContent = JSON.stringify(data, null, 2);
-  } catch (err) {
-    document.getElementById("output").textContent =
-      "Error loading metrics: " + err.message;
+    // Temporary test response (we add Intercom next)
+    res.status(200).json({
+      status: "Backend API working ✅",
+      message: "This data is coming from /api/metrics",
+      time: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: "API failed",
+      details: error.message
+    });
   }
-})();
+}
