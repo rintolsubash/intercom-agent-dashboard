@@ -1,20 +1,12 @@
-// Frontend JavaScript (runs in browser)
-(async function () {
-  const output = document.getElementById("output");
-
-  if (!output) {
-    console.error("Output element not found");
-    return;
-  }
-
+(async () => {
   try {
-    // Call backend API
-    const response = await fetch("/api/metrics");
-    const data = await response.json();
+    const res = await fetch("/api/metrics");
+    const data = await res.json();
 
-    output.textContent = JSON.stringify(data, null, 2);
-  } catch (error) {
-    output.textContent =
-      "Error loading metrics:\n" + error.message;
+    document.getElementById("output").textContent =
+      JSON.stringify(data, null, 2);
+  } catch (err) {
+    document.getElementById("output").textContent =
+      "Error loading metrics: " + err.message;
   }
 })();
