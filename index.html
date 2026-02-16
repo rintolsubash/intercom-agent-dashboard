@@ -10,25 +10,72 @@
       padding: 20px;
       background: #f5f7fa;
     }
+
     h1 {
       margin-bottom: 10px;
     }
+
+    .cards {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      min-width: 160px;
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .card p {
+      font-size: 24px;
+      margin: 6px 0 0;
+      font-weight: bold;
+    }
+
     pre {
       background: #fff;
-      padding: 15px;
-      border-radius: 6px;
+      padding: 16px;
+      border-radius: 8px;
       border: 1px solid #ddd;
-      white-space: pre-wrap;
+      overflow-x: auto;
     }
   </style>
 </head>
+
 <body>
   <h1>Intercom Agent Dashboard</h1>
-  <p>Metrics output:</p>
 
+  <div class="cards">
+    <div class="card">
+      <h2>Total Conversations</h2>
+      <p id="total">–</p>
+    </div>
+    <div class="card">
+      <h2>Open</h2>
+      <p id="open">–</p>
+    </div>
+    <div class="card">
+      <h2>Closed</h2>
+      <p id="closed">–</p>
+    </div>
+    <div class="card">
+      <h2>Waiting</h2>
+      <p id="waiting">–</p>
+    </div>
+  </div>
+
+  <h3>Raw API Output (debug)</h3>
   <pre id="output">Loading metrics...</pre>
 
-  <!-- frontend script -->
   <script src="/metrics.js"></script>
 </body>
 </html>
